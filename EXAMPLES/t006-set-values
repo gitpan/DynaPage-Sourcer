@@ -1,0 +1,17 @@
+#!/usr/bin/perl -w
+
+	use strict;
+	use warnings;
+	use Data::Dump qw(pp);
+	use	DynaPage::Sourcer;
+	
+	print "START\n";
+	
+	my	$s 			= new DynaPage::Sourcer();
+		$s->Set( val1 => 'this value must be rewritten' );
+		$s->Set( val1 => 'this is the 1st value, index 0' );
+		$s->Set( val1 => 'this is the 2nd value, index 1', 1 );
+
+	print "PARSED\n";
+	
+	print pp( $s->Content );	

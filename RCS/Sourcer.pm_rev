@@ -1,0 +1,581 @@
+head	1.4;
+access;
+symbols;
+locks
+	root:1.4; strict;
+comment	@# @;
+
+
+1.4
+date	2004.11.09.17.10.07;	author root;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2004.11.09.17.03.58;	author root;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2004.11.09.13.05.59;	author root;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2004.11.08.16.28.14;	author root;	state Exp;
+branches;
+next	;
+
+
+desc
+@DynaPage::Sourcer
+@
+
+
+1.4
+log
+@*** empty log message ***
+@
+text
+@### //////////////////////////////////////////////////////////////////////////
+#
+#	TOP
+#
+
+=head1 NAME
+
+DynaPage::Sourcer - DynPage text sources parser
+
+=cut
+
+#------------------------------------------------------
+# (C) Daniel Peder & Infoset s.r.o., all rights reserved
+# http://www.infoset.com, Daniel.Peder@@infoset.com
+#------------------------------------------------------
+
+###													###
+###	size of <TAB> in this document is 4 characters	###
+###													###
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: package
+#
+
+    package DynaPage::Sourcer;
+
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: version
+#
+
+	use vars qw( $VERSION $VERSION_LABEL $REVISION $REVISION_DATETIME $REVISION_LABEL $PROG_LABEL );
+
+	$VERSION           = '0.10';
+	
+	$REVISION          = (qw$Revision: 1.2 $)[1];
+	$REVISION_DATETIME = join(' ',(qw$Date: 2004/11/09 13:05:59 $)[1,2]);
+	$REVISION_LABEL    = '$Id: Sourcer.pm_rev 1.2 2004/11/09 13:05:59 root Exp root $';
+	$VERSION_LABEL     = "$VERSION (rev. $REVISION $REVISION_DATETIME)";
+	$PROG_LABEL        = __PACKAGE__." - ver. $VERSION_LABEL";
+
+=pod
+
+ $Revision: 1.2 $
+ $Date: 2004/11/09 13:05:59 $
+
+=cut
+
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: debug
+#
+
+#	use vars qw( $DEBUG ); $DEBUG=0;
+	
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: constants
+#
+
+	# use constant	name		=> 'value';
+	
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: modules use
+#
+
+	require 5.005_62;
+
+	use strict                  ;
+	use warnings                ;
+	
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: class properties
+#
+
+#	our	$config	= 
+#	{
+#	};
+	
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: methods
+#
+
+=head1 METHODS
+
+=over 4
+
+=cut
+
+
+
+### ##########################################################################
+
+=item	new ( @@data ) : DynaPage::Sourcer::
+
+For B<@@data> see B<Parse> method.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		new
+### --------------------------------------------------------------------------
+{
+	my( $proto, @@data ) = @@_;
+	
+	my	$self  = {};
+		bless( $self, (ref( $proto ) || $proto ));
+		$self->Parse( @@data ) if @@data;
+	
+	$self
+}
+
+### ##########################################################################
+
+=item	Set ( $name, $content ) : numeric
+
+Set the named content. Multiple occurences of same
+name are pushed.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Set
+### --------------------------------------------------------------------------
+{
+	my( $self, $name, $content ) = @@_;
+	
+	$self->{'~NEW_KEY'}{$name} = 1 unless exists $self->{'~'}{$name};
+	$self->{'~NEW_VAL'}{$name}++;
+    push( @@{ $self->{'~'}{$name}{'~'} }, $content )
+}
+
+
+### ##########################################################################
+
+=item	Get ( $name [, $indexref [, $joinstring ] ] ) : numeric
+
+Get named content. B<$indexref>, if specified, must 
+be either numeric or arrayref. B<numeric> gets single
+value at specified array index. B<arrayref> gets joined values at specified
+array indexes. Unless B<$indexref> is specified, all joined values are returned.
+When joining, the B<$joinstring> could be specified, otherwise empty string
+is used.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Get
+### --------------------------------------------------------------------------
+{
+	my( $self, $name, $indexref , $joinstring ) = @@_;
+	
+	return $self->Content() unless defined $name;
+	return undef unless exists $self->{'~'}{$name}{'~'};
+	$joinstring = '' unless defined $joinstring;
+	my @@values;
+	if(		!defined($indexref) or !ref($indexref) )
+	{
+		@@values = @@{ $self->{'~'}{$name}{'~'} };
+	}
+	elsif(	ref($indexref) eq 'ARRAY')
+	{
+		@@values = @@{ $self->{'~'}{$name}{'~'}[@@$indexref] };
+	}
+	elsif(	$indexref =~ /^[-]?[0-9]+$/ ) # is-integer-numeric
+	{
+		@@values = @@{ $self->{'~'}{$name}{'~'}[$indexref] };
+	}
+
+	join( $joinstring, @@values )
+}
+
+
+### ##########################################################################
+
+=item	Content (  ) : hashref
+
+Get the whole content hashref.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Content
+### --------------------------------------------------------------------------
+{
+	my( $self ) = @@_;
+    $self->{'~'}
+}
+
+
+### ##########################################################################
+
+=item	Names (  ) : array
+
+Get list of content names.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Names
+### --------------------------------------------------------------------------
+{
+	my( $self ) = @@_;
+    keys %{ $self->Content() }
+}
+
+
+### ##########################################################################
+
+=item	NewNames (  ) : array
+
+Get list of names added during last parsing.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		NewNames
+### --------------------------------------------------------------------------
+{
+	my( $self ) = @@_;
+    my @@list	= keys %{ $self->{'~NEW_KEY'} };
+    wantarray	? @@list : \@@list
+}
+
+
+### ##########################################################################
+
+=item	NewValues ( [ $name ] ) : array | arrayref | number
+
+Get list of names with new values added during last parsing.
+Specifying B<$name> will return number of new values added.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		NewValues
+### --------------------------------------------------------------------------
+{
+	my( $self, $name ) = @@_;
+	
+	if( defined $name )
+	{
+		return $self->{'~NEW_VAL'}{$name}
+	}
+	else
+	{
+	    my	@@list	= keys %{ $self->{'~NEW_VAL'} };
+    	return wantarray ? @@list : \@@list
+	}
+}
+
+
+### ##########################################################################
+
+=item	Parse ( data ) : true
+
+Parse source data. B<data> could be either
+scalar string, scalar ref, hash-ref, array-ref or array.
+In case of hash-ref, array-ref or array each B<value>
+is recursively crawled to find and parse parseable data.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Parse
+### --------------------------------------------------------------------------
+{
+	my( $self, @@data ) = @@_;
+	
+	$self->ClearStats() unless $self->{flg_parsing}++;
+    
+	for my $source ( @@data )
+	{
+		if( !ref($source) )
+		{
+			$self->parse_ref( \$source )
+		}
+		elsif( ref($source) eq 'SCALAR' )
+		{
+			$self->parse_ref( $source )
+		}
+		elsif( ref($source) eq 'HASH' )
+		{
+			for my $val ( values %$source )
+			{ $self->Parse($val) }
+		}
+		elsif( ref($source) eq 'ARRAY' )
+		{
+			for my $val ( @@$source )
+			{ $self->Parse($val) }
+		}
+	}
+	
+	$self->{flg_parsing}--;
+	
+	1
+}
+    
+### ##########################################################################
+
+=item	ClearStats ( data ) : true
+
+Clear parsing statistics.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		Parse
+### --------------------------------------------------------------------------
+{
+	my( $self, @@data ) = @@_;
+
+	delete $self->{'~NEW_KEY'};
+	delete $self->{'~NEW_VAL'};
+	
+	1
+}
+    
+### ##########################################################################
+
+=item	parse_ref ( $source_stringref ) : true
+
+Parse source data.
+
+=cut
+
+### --------------------------------------------------------------------------
+sub		parse_ref
+### --------------------------------------------------------------------------
+{
+	my( $self, $source ) = @@_;
+	
+    my	$contentRegex	= 
+	qr{(?:^|[\r\n]+)\s*([!]?)([\w\.\-\:]+)\s*=(?:(?:([-~])(.*?)(?=[\r\n]))|(?:=([\-\~]?)(.*?)\5==\s*\1\2))}xs;
+
+    while( $$source =~ m{$contentRegex}cgos )
+    {
+	   	my	( $sign, $name, $modifier, $content );
+	   	
+   		( $sign, $name ) = ( $1, $2 );
+		if( $content = $4 )
+		{
+			$modifier	= $3;
+			if( !$modifier or ($modifier eq '-') )
+			{
+				$content =~ s{\s+}{ }gos;		# shrink multiple whitespaces
+				$content =~ s{^\s+|\s+$}{}gos;	# drop lead/trail whitespace
+			}
+		}
+		else
+		{
+			$content	= $6;
+			$modifier	= $5;
+			if( !$modifier )			# minimize whitespaces, keep inner CR/LF's
+			{
+				$content =~ s{[ \t]+}{ }gos;	# shrink multiple whitespaces
+				$content =~ s{^\s+|\s+$}{}gom;	# drop line lead/trail whitespace
+			}
+			elsif( $modifier eq '-' )	# multi to single line, total minimize whitespaces
+			{
+				$content =~ s{\s+}{ }gos;		# shrink multiple whitespaces
+				$content =~ s{^\s+|\s+$}{}gos;	# drop lead/trail whitespace
+			}
+			elsif( $modifier eq '~' )	# keep whitespaces but first/last CR/LF
+			{
+				$content =~ s{^(\r\n|\r|\n)}{}os;	# drop lead whitespace
+				$content =~ s{(\r\n|\r|\n)$}{}os;	# drop lead/trail whitespace
+			}
+		}
+		$self->Set( $sign.$name, $content );
+	}
+
+	1
+}
+
+
+
+=back
+
+=cut
+
+
+1;
+
+__DATA__
+
+__END__
+
+### //////////////////////////////////////////////////////////////////////////
+#
+#	SECTION: TODO
+#
+
+
+=head1 TODO	
+
+
+=cut
+@
+
+
+1.3
+log
+@NewNames & NewValues
+@
+text
+@d280 1
+a280 6
+	# open parsing statistics
+	unless( $self->{flg_parsing}++ )
+	{
+		delete $self->{'~NEW_KEY'};
+		delete $self->{'~NEW_VAL'};
+	}
+a303 1
+	# close parsing statistics
+d311 21
+a331 1
+=item	parse_ref ( $source_stringref ) : 1
+d382 1
+@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@d38 3
+a40 3
+	$REVISION          = (qw$Revision: 1.1 $)[1];
+	$REVISION_DATETIME = join(' ',(qw$Date: 2004/11/08 16:28:14 $)[1,2]);
+	$REVISION_LABEL    = '$Id: Sourcer.pm_rev 1.1 2004/11/08 16:28:14 root Exp root $';
+d46 2
+a47 2
+ $Revision: 1.1 $
+ $Date: 2004/11/08 16:28:14 $
+d137 4
+a140 1
+    push @@{ $self->{'~'}{$name}{'~'} }, $content;
+d203 63
+a265 1
+=item	Parse ( data ) : bool
+d280 7
+d309 4
+d328 1
+a328 1
+    
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d8 1
+a8 1
+DynaPage::Sourcer - Dynamic Page document content
+d39 2
+a40 2
+	$REVISION_DATETIME = join(' ',(qw$Date: 2004/11/08 01:44:09 $)[1,2]);
+	$REVISION_LABEL    = '$Id: Sourcer.pm_rev 1.1 2004/11/08 01:44:09 root Exp root $';
+d47 1
+a47 1
+ $Date: 2004/11/08 01:44:09 $
+d57 1
+a57 1
+	use vars qw( $DEBUG ); $DEBUG=0;
+d84 3
+a86 3
+	our	$config	= 
+	{
+	};
+d104 3
+a106 1
+=item	new ( [ $body ] ) : DynaPage::Sourcer::
+d114 1
+a114 1
+	my( $proto, $source ) = @@_;
+d118 1
+a118 1
+		$self->source( $source );
+d125 1
+a125 1
+=item	source ( $source ) : string
+d127 2
+a128 1
+Set/Get the source.
+d133 1
+a133 1
+sub		source
+d136 42
+a177 3
+	my( $self, $source ) = @@_;
+    $self->{SOURCE} = $source if defined $source;
+    $self->{SOURCE}
+d183 1
+a183 1
+=item	content ( $name [, $content ] ) : string
+d185 1
+a185 1
+Set/Get the named content.
+d190 1
+a190 1
+sub		content
+d193 2
+a194 3
+	my( $self, $name, $content ) = @@_;
+    $self->{CONTENT}{$name} = $content if defined $content;
+    $self->{CONTENT}{$name}
+d200 1
+a200 1
+=item	Parse ( [ $source ] ) : bool
+d202 4
+a205 1
+Parse text source data.
+d213 38
+a252 2
+    $source	= $self->source( $source );
+    
+d256 1
+a256 1
+    while( $source =~ m{$contentRegex}cgos )
+a259 2
+	   	print STDERR $&;
+	   	
+d290 1
+a290 1
+		$self->content( $sign.$name, $content );
+d292 1
+@

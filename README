@@ -1,0 +1,112 @@
+NAME
+
+    DynaPage::Sourcer - DynPage text sources parser
+
+     #------------------------------------------------------
+     # (C) Daniel Peder & Infoset s.r.o., all rights reserved
+     # http://www.infoset.com, Daniel.Peder@infoset.com
+     #------------------------------------------------------
+
+     $Revision: 1.4 $
+     $Date: 2005/01/13 21:30:49 $
+
+METHODS
+
+    new ( [ @data ] ) : blessed-hashref
+        For @data see Parse method.
+
+    Parse ( data ) : true
+        Parse source data. data could be either scalar string, scalar ref,
+        hash-ref, array-ref or array. In case of hash-ref, array-ref or
+        array each value is recursively crawled to find and parse parseable
+        data.
+
+    parse_ref ( $source_stringref ) : true
+        The main source data parser.
+
+        There are two main format types of text sources:
+
+         - single line
+ 
+           value-name =- shrink line-inner tabs/spaces, drop line-outer whitespaces
+           value-name =~ line whitespaces are preserved
+ 
+         - multi line
+
+           # UnIndent
+           value-name ==
+              shrink block-inner tabs/spaces
+              drop block-outer newlines/linefeeds
+              drop line-aouter spaces/tabs
+           == value-name
+
+           # SingleLiner
+           value-name ==-
+              shrink block-inner whitespaces
+              drop block-outer whitespaces
+           -== value-name
+
+           # Preserver
+           value-name ==~ 
+              drop block up-to/behind first newline[?linefeed]
+              preserve all whitespaces
+           ~== value-name
+
+    Set ( $name, $content, $indexref ) : true
+        Set the named content.
+
+    Add ( $name, $content ) : numeric
+        Add the named content. Multiple occurences of same name are pushed.
+
+        Returns number of values.
+
+    Get ( [$name, [$indexref], [$joinstring]] ) : string|array|hashref
+        Get named content.
+
+        Without arguments returns $self->Content().
+
+        $indexref must be either numeric or arrayref, if specified.
+
+        numeric gets single value at specified array index.
+
+        arrayref gets joined values at specified array indexes.
+
+        Negative $indexref works same way as with perl arrays, eg index from
+        the end of array.
+
+        Unless $indexref is specified, all joined values for the $name are
+        returned.
+
+        For separating joined values, the $joinstring,
+        $self->{'~JOINSTRING'} or '' will be used is this order.
+
+    Content ( ) : hashref
+        Get the whole content hashref.
+
+    Names ( ) : array | arrayref
+        Get list of content names.
+
+    NewNames ( ) : array | arrayref
+        Get list of names added during last parsing - see also
+        UpdateStats().
+
+    NewValues ( [ $name ] ) : array | number
+        Get list of names with new values added during last parsing.
+        Specifying $name will return number of new values added - see also
+        UpdateStats().
+
+    ClearStats ( data ) : true
+        Clear parsing statistics by deleting ~NEW_KEY and ~NEW_VAL - see
+        also UpdateStats().
+
+    UpdateStats ( $name ) : true
+        Update parsing statistics for given $name :
+
+        ~NEW_KEY is assigned to 1 if it is first time of Set($name).
+        ~NEW_VAL is allways incremented by 1
+
+        $self->{'~NEW_KEY'} and $self->{'~NEW_VAL'} are intended for
+        internal use only.
+
+TODO
+

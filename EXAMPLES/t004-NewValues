@@ -1,0 +1,20 @@
+#!/usr/bin/perl -w
+
+	use strict;
+	use warnings;
+	use Data::Dump qw(pp);
+	use	DynaPage::Sourcer;
+	
+	print "START\n";
+	
+	my	$source		= qx( cat source1.txt );
+	my	$s 			= new DynaPage::Sourcer();	
+
+		$s->Parse( $source );
+
+	print join( "\n", $s->NewValues('sl1'), '' );
+
+		$s->Parse( "new-name =- abc\n" );
+
+	print join( "\n", $s->NewValues('new-name'), '' );
+	

@@ -1,0 +1,75 @@
+# jednoradkovy text, bile znaky jsou totalne minimalizovany 
+# (prvni/posledni pryc, ostatni zjednoduseny)
+
+sl1 =- ahoj1
+sl1 =- ahoj2
+
+# jednoradkovy text, vsechny bile znaky jsou zachovany
+# 
+
+sl2 =~        mezery   zustanou   jak byly   
+
+# viceradkovy text se zachovanim novych radku
+# ale s minimalizaci mezer a tabelatoru
+
+ml1 ==
+	nasleduje text
+	ze ktereho budou
+	odstraneny tabelatory
+	a      duplicitni      mezery
+== ml1
+
+# viceradkovy text -> jednoradkovy text
+
+ml2 ==-
+
+Toto je viceradkovy 
+text ze ktereho se 
+stane jednoradkovy text
+s totalne minimalizovanymi
+bilymi znaky
+
+-== ml2
+
+# viceradkovy text se zachovanym formatovanim bilych znaku
+# vyjimka: prvni [CR]LF tesne za ==~ a tesne pred ~== je zahozeno
+# pozor: chceme-li mit za poslednim radkem CR/LF, musime ho tam napsat 
+# s ohledem na to, ze posledni CR/LF je zahozeno. Takze 2x!
+
+ml3-keep-ws ==~
+
+	Odstavec
+	zustane 
+	odstavcem
+
+~== ml3-keep-ws
+
+# priklady
+
+!stream:html
+!html.content.type =-   text/html;   charset=Windows-1250
+!html.template-file =- /mydir/myfile.dpt
+
+!html.template-part1 ==~
+	<div>boom</div>
+~== !html.template-part1
+
+ml4
+==
+toto je povoleno
+==
+ml4
+
+ml5
+==~
+
+	Toto je taky povoleno
+	a stale
+	Odstavec
+	zustane 
+	odstavcem
+
+~==
+ml5
+
+sl3 =- text bez konce radku

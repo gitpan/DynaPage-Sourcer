@@ -1,0 +1,28 @@
+
+Anything outside is treated as comment.
+The only one 'catch point' is the line beginng with '@'
+
+multiline value with postprocessing instructions
+
+@ test1 
+  !html-escape 
+  !charset-transform:iso-8859-2:utf-8
+  !unindent
+  !whitespace-drop-block-ends
+  !whitespce-shrink-block
+  !whitespace-shrink-lines
+
+===--------------------------===
+
+multilined
+value
+
+===--------------------------===
+
+singleline value with postprocessing instructions
+
+@ test2
+  !html-escape 
+  !charset-transform:iso-8859-2:utf-8
+  !unindent
+  = shabba dabba doo

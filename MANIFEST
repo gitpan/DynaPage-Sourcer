@@ -1,0 +1,20 @@
+ABOUT/00-about
+ABOUT/FormatIdea
+ABOUT/MultipartTextSourceFormat.txt
+EXAMPLES/source1.txt
+EXAMPLES/t000-Parse-source
+EXAMPLES/t001-Get-values
+EXAMPLES/t002-NewNames
+EXAMPLES/t003-Names
+EXAMPLES/t004-NewValues
+EXAMPLES/t005-Get-2
+EXAMPLES/t006-set-values
+EXAMPLES/t007-add-values
+Makefile.PL
+MANIFEST			This list of files
+RCS/Sourcer.pm,v
+RCS/Sourcer.pm_rev
+README
+Sourcer.pm
+t/00-01_use.t
+META.yml                                 Module meta-data (added by MakeMaker)
